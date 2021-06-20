@@ -6,6 +6,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
 using MyKoloApi.Data;
+using MyKoloApi.Models;
+using MyKoloApi.Services;
 
 namespace MyKoloApi
 {
@@ -27,10 +29,17 @@ namespace MyKoloApi
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "MyKoloApi", Version = "v1" });
             });
+
             services.AddDbContext<ApplicationDbContext>(options =>
             {
-                options.UseSqlServer(Configuration["ConnectionStrings:koloDb"]);
+                options.UseSqlServer(Configuration.GetConnectionString("koloDb"));
             });
+
+            services.Configure<AppSetting>(Configuration.GetSection("AppSettings"));
+
+            //DI
+            services.AddScoped<ITokenService, TokenService>();
+            services.AddScoped<IUserService, UserService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -46,6 +55,8 @@ namespace MyKoloApi
             app.UseHttpsRedirection();
 
             app.UseRouting();
+            
+            app.UseAuthentication();
 
             app.UseAuthorization();
 
